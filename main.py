@@ -33,15 +33,15 @@ def sigmoid_derivative(x):
 def Loss(y, y_exp):
     loss = 0
     for i in range(len(y)):
-        loss += (y-y_exp)**2
+        loss += (y[i]-y_exp[i])**2
 
     return loss
 
 class NeuralNetwork:
     def __init__(self, x, y):
         self.input = x
-        self.weights1 = np.random.rand(self.input.shape[1],5)
-        self.weights2 = np.random.rand(5,1)
+        self.weights1 = np.random.rand(self.input.shape[1], 70)
+        self.weights2 = np.random.rand(70, 1)
         self.y = y
         self.output = np.zeros(self.y.shape)
 
@@ -52,8 +52,9 @@ class NeuralNetwork:
     def backprop(self):
         # application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
 
-        d_weights2 = np.dot(self.layer1.T, (2*(self.y - self.output) * sigmoid_derivative(self.output)))
-        d_weights1 = np.dot(self.input.T,  (np.dot(2*(self.y - self.output) * sigmoid_derivative(self.output), self.weights2.T) * sigmoid_derivative(self.layer1)))
+        d_weights2 = np.dot(self.layer1.T, (2 * (self.y - self.output) * sigmoid_derivative(self.output)))
+        d_weights1 = np.dot(self.input.T, (np.dot(2 * (self.y - self.output) * sigmoid_derivative(self.output),
+                                                  self.weights2.T) * sigmoid_derivative(self.layer1)))
 
         # update the weights with the derivative (slope) of the loss function
         self.weights1 += d_weights1
@@ -72,47 +73,20 @@ data.PH_water = [sheet[f"F{x}"].value for x in range(2, 2 + count)]
 data.humus = [sheet[f"G{x}"].value for x in range(2, 2 + count)]
 data.PH_salt = [sheet[f"H{x}"].value for x in range(2, 2 + count)]
 
+InputArr = []
+OutputArr = []
+for i in range(count):
+    InputArr.append([data.P205[i], data.K20[i], data.PH_salt[i], data.PH_water[i], data.hydrolytic_acid[i]])
+    OutputArr.append([data.humus[i]])
 
-CurModel = NeuralNetwork(np.array([[data.P205[0], data.K20[0], data.PH_salt[0], data.PH_water[0], data.hydrolytic_acid[0]]]), np.array(data.humus[0]))
+InputArr = np.array(InputArr, dtype=float)
+OutputArr = np.array(OutputArr, dtype=float)
+
+CurModel = NeuralNetwork(InputArr, OutputArr)
 CurModel.feedforward()
 CurModel.backprop()
-print(Loss(CurModel.output, data.humus[0]))
-for i in range(1, count*2):
-    CurModel.input = np.array([[data.P205[i % count], data.K20[i % count], data.PH_salt[i % count], data.PH_water[i % count], data.hydrolytic_acid[i % count]]])
-    CurModel.y = np.array(data.humus[i % count])
+
+for i in range(1, count*200):
     CurModel.feedforward()
     CurModel.backprop()
     print(Loss(CurModel.output, CurModel.y))
-
-
-
-
-
-
-
-
-
-
-
-# class DanseNN(tf.Module):
-#     def __init__(self, outputs):
-#         super().__init__()
-#         self.outputs = outputs
-#         self.fl_init = False
-#     def __call__(self, x):
-#         if not self.fl_init:
-#             self.w = tf.random.truncated_normal((x.shape[-1], self.outputs), stddev=0.1, name="w")
-#             self.b = tf.zeros([self.outputs], dtype=tf.float32, name = "b")
-#
-#             self.w = tf.Variable(self.w)
-#             self.b = tf.Variable(self.b)
-#
-#             self.fl_init = True
-#
-#         y = x@self.w + self.b
-#         return y
-#
-#
-#
-# model = DanseNN(1)
-# print(model(tf.constant([[1.0, 2.0]])))
