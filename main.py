@@ -1,10 +1,12 @@
 from openpyxl import load_workbook
 import itertools
 import os
+from keras.models import Sequential
+from keras.layers import Dense
 import numpy as np
 # os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-# import tensorflow as tf
-# tf.config.list_physical_devices('GPU')
+import tensorflow as tf
+tf.config.list_physical_devices('GPU')
 
 
 class Data:
@@ -22,6 +24,7 @@ def functoarray(arr, func):
 
     return arr
 
+
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
 
@@ -37,6 +40,7 @@ def Loss(y, y_exp):
 
     return loss
 
+
 class NeuralNetwork:
     def __init__(self, x, y):
         self.input = x
@@ -47,7 +51,7 @@ class NeuralNetwork:
 
     def feedforward(self):
         self.layer1 = sigmoid(np.dot(self.input, self.weights1))
-        self.output = sigmoid(np.dot(self.layer1, self.weights2))
+        self.output = np.dot(self.layer1, self.weights2)
 
     def backprop(self):
         # application of the chain rule to find derivative of the loss function with respect to weights2 and weights1
@@ -81,12 +85,27 @@ for i in range(count):
 
 InputArr = np.array(InputArr, dtype=float)
 OutputArr = np.array(OutputArr, dtype=float)
+#
+# CurModel = NeuralNetwork(InputArr, OutputArr)
+# CurModel.feedforward()
+# CurModel.backprop()
+#
+# for i in range(1, count*200):
+#     CurModel.feedforward()
+#     CurModel.backprop()
+#     print(Loss(CurModel.output, CurModel.y))
 
-CurModel = NeuralNetwork(InputArr, OutputArr)
-CurModel.feedforward()
-CurModel.backprop()
+model = Sequential()
+model.add(Dense(count, input_dim=5, activation='relu'))
+model.add(Dense(count, activation='relu'))
 
-for i in range(1, count*200):
-    CurModel.feedforward()
-    CurModel.backprop()
-    print(Loss(CurModel.output, CurModel.y))
+
+model.add(Dense(1, activation='sigmoid'))
+model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+model.fit(InputArr, OutputArr, epochs=500)
+
+loss, accuracy = model.evaluate(InputArr, OutputArr)
+print(f"Точность модели: {accuracy * 100:.2f}%")
+
+predictions = model.predict(InputArr)
+print(predictions)
