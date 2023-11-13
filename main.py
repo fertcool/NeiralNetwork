@@ -10,7 +10,7 @@ import numpy as np
 from tensorflow.python.client import device_lib
 
 import tensorflow as tf
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 
 class Data:
@@ -65,7 +65,7 @@ for i in range(count):
                      data.red[i], data.green[i], data.blue[i], data.ch_8[i], data.ch_7[i], data.ch_6[i],
                      data.ch_5[i], data.ch_4[i], data.ch_3[i], data.ch_2[i], data.ch_1[i]])
     OutputArr.append([data.humus[i]])
-    OutputArr[i][0] /= max(data.humus)
+    OutputArr[i][0] /= 100
 
 InputArr = np.array(InputArr, dtype=float)
 OutputArr = np.array(OutputArr, dtype=float)
@@ -86,7 +86,7 @@ loss, accuracy = model.evaluate(InputArr, OutputArr)
 print(f"Точность модели: {accuracy * 100:.2f}%")
 
 predictions = model.predict(InputArr)
-print(predictions*max(data.humus))
+print(predictions*100)
 # model.save('16_model')
 # model_loaded = keras.models.load_model('16_model')
 # predictions = model_loaded.predict(InputArr[1:6])
