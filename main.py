@@ -68,9 +68,8 @@ OutputArr = []
 
 # заполнение массивов с данными выборки - InputArray и гумуса - OutputArray, при этом данные нормализуются
 for i in range(count):
-    InputArr.append([data.P205[i]/1000, data.K20[i]/1000, data.PH_salt[i]/10, data.PH_water[i]/10, data.hydrolytic_acid[i]/10,
-                     data.red[i]/256, data.green[i]/256, data.blue[i]/256, data.ch_8[i]/5000, data.ch_7[i]/5000, data.ch_6[i]/5000,
-                     data.ch_5[i]/5000, data.ch_4[i]/5000, data.ch_3[i]/5000, data.ch_2[i]/5000, data.ch_1[i]/5000])
+    InputArr.append([data.P205[i]/1000, data.K20[i]/1000, data.PH_salt[i]/10, data.PH_water[i]/10, data.hydrolytic_acid[i]/10
+                     ])
     OutputArr.append([data.humus[i]/100])
 
 
@@ -79,7 +78,7 @@ OutputArr = np.array(OutputArr, dtype=float)
 
 # создание слоев нейронной сети
 model = Sequential()
-model.add(Dense(count*2, input_dim=16, activation='relu'))
+model.add(Dense(count*2, input_dim=5, activation='relu'))
 model.add(Dense(count*2, activation='relu'))
 model.add(Dense(count*2, activation='relu'))
 model.add(Dense(count*2, activation='relu'))
@@ -87,12 +86,12 @@ model.add(Dense(1, activation='sigmoid'))
 
 # окончательное создание сети с выбором ф-ии ошибки, заполнением данных обучения и выбором количества итераций
 model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
-model.fit(InputArr[:67], OutputArr[:67], epochs=250)
-loss, accuracy = model.evaluate(InputArr[:67], OutputArr[:67])
+model.fit(np.concatenate([InputArr[:19], InputArr[20:39], InputArr[40:59], InputArr[60:70]]), np.concatenate([OutputArr[:19], OutputArr[20:39], OutputArr[40:59], OutputArr[60:70]]), epochs=25000)
+loss, accuracy = model.evaluate(np.concatenate([InputArr[:19], InputArr[20:39], InputArr[40:59], InputArr[60:70]]), np.concatenate([OutputArr[:19], OutputArr[20:39], OutputArr[40:59], OutputArr[60:70]]))
 print(f"Точность модели: {accuracy * 100:.2f}%")
 predictions = model.predict(InputArr)  # предсказываем
 print(abs(predictions-OutputArr)/OutputArr*100)  # в конце выводим относительную погрешность предсказания
-model.save('16_4layer-2_3-_MSE_25000')  # сохранение модели
+model.save('5_4layer-2_-20-40-60-_MSE_25000')  # сохранение модели
 
 # model_loaded = keras.models.load_model('16_4layer-2_3-_MSE_25000')
 # predictions = model_loaded.predict(InputArr)
