@@ -10,9 +10,9 @@ import numpy as np
 from tensorflow.python.client import device_lib
 
 import tensorflow as tf
+# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 
-
-
+# класс для хранения данных из таблицы
 class Data:
     P205: list[float]
     K20: list[float]
@@ -35,8 +35,8 @@ class Data:
     ch_1:list[float]
 
 
-# Load in the workbook
-wb = load_workbook("./i_kanalov-1.xlsx")
+# Загрузка таблицы в обьект data
+wb = load_workbook("./i_kanalov_not_norm.xlsx")
 sheet = wb[wb.sheetnames[0]]
 count = sum(1 for _ in itertools.takewhile(lambda y: sheet[f"A{y}"].value is not None, itertools.count(2)))
 data = Data()
@@ -60,34 +60,40 @@ data.ch_1 = [sheet[f"T{x}"].value for x in range(2, 2 + count)]
 
 InputArr = []
 OutputArr = []
+# for i in range(count):
+#     InputArr.append([data.P205[i]/1000, data.K20[i]/1000, data.PH_salt[i]/10, data.PH_water[i]/10, data.hydrolytic_acid[i]/100,
+#                      data.red[i]/256, data.green[i]/256, data.blue[i]/256, data.ch_8[i]/5000, data.ch_7[i]/5000, data.ch_6[i]/5000,
+#                      data.ch_5[i]/5000, data.ch_4[i]/5000, data.ch_3[i]/5000, data.ch_2[i]/5000, data.ch_1[i]/5000])
+#     OutputArr.append([data.humus[i]/100])
+
+# заполнение массивов с данными выборки - InputArray и гумуса - OutputArray, при этом данные нормализуются
 for i in range(count):
-    InputArr.append([data.P205[i], data.K20[i], data.PH_salt[i], data.PH_water[i], data.hydrolytic_acid[i],
-                     data.red[i], data.green[i], data.blue[i], data.ch_8[i], data.ch_7[i], data.ch_6[i],
-                     data.ch_5[i], data.ch_4[i], data.ch_3[i], data.ch_2[i], data.ch_1[i]])
-    OutputArr.append([data.humus[i]])
-    OutputArr[i][0] /= 100
+    InputArr.append([data.P205[i]/1000, data.K20[i]/1000, data.PH_salt[i]/10, data.PH_water[i]/10, data.hydrolytic_acid[i]/10,
+                     data.red[i]/256, data.green[i]/256, data.blue[i]/256, data.ch_8[i]/5000, data.ch_7[i]/5000, data.ch_6[i]/5000,
+                     data.ch_5[i]/5000, data.ch_4[i]/5000, data.ch_3[i]/5000, data.ch_2[i]/5000, data.ch_1[i]/5000])
+    OutputArr.append([data.humus[i]/100])
+
 
 InputArr = np.array(InputArr, dtype=float)
 OutputArr = np.array(OutputArr, dtype=float)
 
-
+# создание слоев нейронной сети
 model = Sequential()
-model.add(Dense(count*10, input_dim=16, activation='relu'))
-model.add(Dense(count*10, activation='relu'))
-model.add(Dense(count*20, activation='relu'))
-model.add(Dense(count*20, activation='relu'))
-model.add(Dense(count*30, activation='relu'))
+model.add(Dense(count*2, input_dim=16, activation='relu'))
+model.add(Dense(count*2, activation='relu'))
+model.add(Dense(count*2, activation='relu'))
+model.add(Dense(count*2, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 
-model.compile(loss='mae', optimizer='adam', metrics=['accuracy'])
-model.fit(InputArr, OutputArr, epochs=10000)
-
-loss, accuracy = model.evaluate(InputArr, OutputArr)
+# окончательное создание сети с выбором ф-ии ошибки, заполнением данных обучения и выбором количества итераций
+model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
+model.fit(InputArr[:67], OutputArr[:67], epochs=250)
+loss, accuracy = model.evaluate(InputArr[:67], OutputArr[:67])
 print(f"Точность модели: {accuracy * 100:.2f}%")
+predictions = model.predict(InputArr)  # предсказываем
+print(abs(predictions-OutputArr)/OutputArr*100)  # в конце выводим относительную погрешность предсказания
+model.save('16_4layer-2_3-_MSE_25000')  # сохранение модели
 
-predictions = model.predict(InputArr)
-print(predictions*100)
-# model.save('16_model')
-# model_loaded = keras.models.load_model('16_model')
-# predictions = model_loaded.predict(InputArr[1:6])
-# print(predictions*max(data.humus))
+# model_loaded = keras.models.load_model('16_4layer-2_3-_MSE_25000')
+# predictions = model_loaded.predict(InputArr)
+# print(abs(predictions-OutputArr)/OutputArr*100)
