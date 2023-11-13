@@ -1,16 +1,13 @@
-import random
-
-from openpyxl import load_workbook
 import itertools
 import os
-from tensorflow import keras
-from keras.models import Sequential
-from keras.layers import Dense
-import numpy as np
-from tensorflow.python.client import device_lib
 
-import tensorflow as tf
-# os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+import numpy as np
+from keras.layers import Dense
+from keras.models import Sequential
+from openpyxl import load_workbook
+
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+
 
 # класс для хранения данных из таблицы
 class Data:
@@ -21,18 +18,18 @@ class Data:
     PH_salt: list[float]
     humus: list[float]
 
-    red:list[float]
-    green:list[float]
-    blue:list[float]
+    red: list[float]
+    green: list[float]
+    blue: list[float]
 
-    ch_8:list[float]
-    ch_7:list[float]
-    ch_6:list[float]
-    ch_5:list[float]
-    ch_4:list[float]
-    ch_3:list[float]
-    ch_2:list[float]
-    ch_1:list[float]
+    ch_8: list[float]
+    ch_7: list[float]
+    ch_6: list[float]
+    ch_5: list[float]
+    ch_4: list[float]
+    ch_3: list[float]
+    ch_2: list[float]
+    ch_1: list[float]
 
 
 # Загрузка таблицы в обьект data
@@ -68,21 +65,23 @@ OutputArr = []
 
 # заполнение массивов с данными выборки - InputArray и гумуса - OutputArray, при этом данные нормализуются
 for i in range(count):
-    InputArr.append([data.P205[i]/1000, data.K20[i]/1000, data.PH_salt[i]/10, data.PH_water[i]/10, data.hydrolytic_acid[i]/10,
-                     data.red[i]/256, data.green[i]/256, data.blue[i]/256, data.ch_8[i]/5000, data.ch_7[i]/5000, data.ch_6[i]/5000,
-                     data.ch_5[i]/5000, data.ch_4[i]/5000, data.ch_3[i]/5000, data.ch_2[i]/5000, data.ch_1[i]/5000])
-    OutputArr.append([data.humus[i]/100])
-
+    InputArr.append([data.P205[i] / 1000, data.K20[i] / 1000, data.PH_salt[i] / 10, data.PH_water[i] / 10,
+                     data.hydrolytic_acid[i] / 10,
+                     data.red[i] / 256, data.green[i] / 256, data.blue[i] / 256, data.ch_8[i] / 5000,
+                     data.ch_7[i] / 5000, data.ch_6[i] / 5000,
+                     data.ch_5[i] / 5000, data.ch_4[i] / 5000, data.ch_3[i] / 5000, data.ch_2[i] / 5000,
+                     data.ch_1[i] / 5000])
+    OutputArr.append([data.humus[i] / 100])
 
 InputArr = np.array(InputArr, dtype=float)
 OutputArr = np.array(OutputArr, dtype=float)
 
 # создание слоев нейронной сети
 model = Sequential()
-model.add(Dense(count*2, input_dim=16, activation='relu'))
-model.add(Dense(count*2, activation='relu'))
-model.add(Dense(count*2, activation='relu'))
-model.add(Dense(count*2, activation='relu'))
+model.add(Dense(count * 2, input_dim=16, activation='relu'))
+model.add(Dense(count * 2, activation='relu'))
+model.add(Dense(count * 2, activation='relu'))
+model.add(Dense(count * 2, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 
 # окончательное создание сети с выбором ф-ии ошибки, заполнением данных обучения и выбором количества итераций
@@ -91,7 +90,7 @@ model.fit(InputArr[:67], OutputArr[:67], epochs=250)
 loss, accuracy = model.evaluate(InputArr[:67], OutputArr[:67])
 print(f"Точность модели: {accuracy * 100:.2f}%")
 predictions = model.predict(InputArr)  # предсказываем
-print(abs(predictions-OutputArr)/OutputArr*100)  # в конце выводим относительную погрешность предсказания
+print(abs(predictions - OutputArr) / OutputArr * 100)  # в конце выводим относительную погрешность предсказания
 model.save('16_4layer-2_3-_MSE_25000')  # сохранение модели
 
 # model_loaded = keras.models.load_model('16_4layer-2_3-_MSE_25000')
