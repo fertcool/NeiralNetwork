@@ -83,14 +83,14 @@ model.add(Dense(1, activation='sigmoid'))
 
 # окончательное создание сети с выбором ф-ии ошибки, заполнением данных обучения и выбором количества итераций
 model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
-#                   :67 MSE
+#                   :67 MSE ----
 #                   :67 MAE
-model.fit(InputArr[3:], OutputArr[3:], epochs=25000)
-loss, accuracy = model.evaluate(InputArr[3:], OutputArr[3:])
+model.fit(InputArr[67:], OutputArr[67:], epochs=25000)
+loss, accuracy = model.evaluate(InputArr[67:], OutputArr[67:])
 print(f"Точность модели: {accuracy * 100:.2f}%")
 predictions = model.predict(InputArr)  # предсказываем
 print(abs(predictions - OutputArr) / OutputArr * 100)  # в конце выводим относительную погрешность предсказания
-model.save('5_4layer-2_3-_MSE_25000')  # сохранение модели
+model.save('5_4layer-2_-67_MSE_25000')  # сохранение модели
 
 # model_loaded = keras.models.load_model('16_4layer-2_3-_MSE_25000')
 # predictions = model_loaded.predict(InputArr)
