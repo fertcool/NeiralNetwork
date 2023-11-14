@@ -80,19 +80,23 @@ OutputArr = np.array(OutputArr, dtype=float)
 model = Sequential()
 model.add(Dense(count*2, input_dim=5, activation='relu'))
 model.add(Dense(count*2, activation='relu'))
+tf.keras.layers.Dropout(0.2)
 model.add(Dense(count*2, activation='relu'))
+tf.keras.layers.Dropout(0.2)
 model.add(Dense(count*2, activation='relu'))
 model.add(Dense(1, activation='sigmoid'))
 
+
+
 # окончательное создание сети с выбором ф-ии ошибки, заполнением данных обучения и выбором количества итераций
 model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
-model.fit(np.concatenate([InputArr[:19], InputArr[20:39], InputArr[40:59], InputArr[60:70]]), np.concatenate([OutputArr[:19], OutputArr[20:39], OutputArr[40:59], OutputArr[60:70]]), epochs=25000)
-loss, accuracy = model.evaluate(np.concatenate([InputArr[:19], InputArr[20:39], InputArr[40:59], InputArr[60:70]]), np.concatenate([OutputArr[:19], OutputArr[20:39], OutputArr[40:59], OutputArr[60:70]]))
+model.fit(InputArr[3:], OutputArr[3:], epochs=1000)
+loss, accuracy = model.evaluate(InputArr[3:], OutputArr[3:])
 print(f"Точность модели: {accuracy * 100:.2f}%")
 predictions = model.predict(InputArr)  # предсказываем
 print(abs(predictions-OutputArr)/OutputArr*100)  # в конце выводим относительную погрешность предсказания
-model.save('5_4layer-2_-20-40-60-_MSE_25000')  # сохранение модели
+# model.save('5_4layer-2_-67_MAE_25000')  # сохранение модели
 
-# model_loaded = keras.models.load_model('16_4layer-2_3-_MSE_25000')
+# model_loaded = keras.models.load_model('5_4layer-2_3-_MSE_25000')
 # predictions = model_loaded.predict(InputArr)
-# print(abs(predictions-OutputArr)/OutputArr*100)
+# print(predictions*100)
